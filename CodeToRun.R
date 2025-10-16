@@ -10,7 +10,7 @@
 # =====================================================
 
 outputFolder <- "~/result"
-tiffName <- "YourInstitution_Kaplan_Meier_IPG.tiff" # Modify tiffName according to your institution
+pdfName <- "YourInstitution_Kaplan_Meier_IPG.tiff" # Modify tiffName according to your institution
 tableName <- "YourInstitution_survival_table.csv" # Modify tableName according to your institution
 
 # Library Setting
@@ -41,9 +41,7 @@ schema <- "DATABASE.SCHEMA" # modify schema according to your institution (e.g.,
 
 connection <- DatabaseConnector::connect(connectionDetails)
 sql <- SqlRender::readSql("CreateCohorts.sql")
-sql <- gsub("@databaseschema", schema, sql)
-
-rawData <- DatabaseConnector::renderTranslateQuerySql(connection, sql)
+rawData <- DatabaseConnector::renderTranslateQuerySql(connection, sql, databaseschema = schema)
 DatabaseConnector::disconnect(connection)
 
 analysisData <- rawData
@@ -109,7 +107,7 @@ plot <- ggsurvplot(km_fit,
   )
 
 # Save plot as TIFF file
-tiff(file.path(outputFolder, tiffName), width = 20, height = 15, units = "cm", res = 500)
+pdf(file.path(outputFolder, pdfName), width = 7.87, height = 5.91) 
 print(plot)
 dev.off()
 
