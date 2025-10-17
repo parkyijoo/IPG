@@ -12,6 +12,7 @@
 outputFolder <- "~/result"
 pdfName <- "YourInstitution_Kaplan_Meier_IPG.tiff" # Modify tiffName according to your institution
 tableName <- "YourInstitution_survival_table.csv" # Modify tableName according to your institution
+tableName2 <- "YourInstitution_result_table.csv" # Modify tableName according to your institution
 
 # Library Setting
 library(CohortMethod)
@@ -113,3 +114,4 @@ dev.off()
 
 # Export results table as CSV
 write.csv(tableResults, file.path(outputFolder, tableName))
+write.csv(analysisData, file.path(outputFolder, tableName2)
