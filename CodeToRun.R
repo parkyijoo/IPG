@@ -10,7 +10,7 @@
 # =====================================================
 
 outputFolder <- "~/result"
-pdfName <- "YourInstitution_Kaplan_Meier_IPG.tiff" # Modify tiffName according to your institution
+pdfName <- "YourInstitution_Kaplan_Meier_IPG.pdf" # Modify pdfName according to your institution
 tableName <- "YourInstitution_survival_table.csv" # Modify tableName according to your institution
 tableName2 <- "YourInstitution_result_table.csv" # Modify tableName according to your institution
 
@@ -107,11 +107,11 @@ plot <- ggsurvplot(km_fit,
            risk.table.fontsize = 3.5,
   )
 
-# Save plot as TIFF file
+# Save plot as PDF file
 pdf(file.path(outputFolder, pdfName), width = 7.87, height = 5.91) 
 print(plot)
 dev.off()
 
 # Export results table as CSV
 write.csv(tableResults, file.path(outputFolder, tableName))
-write.csv(analysisData, file.path(outputFolder, tableName2)
+write.csv(analysisData, file.path(outputFolder, tableName2))
