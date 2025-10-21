@@ -79,11 +79,9 @@ tableResults <- ipgModels %>%
   mutate(across(where(is.numeric), ~replace_na(., 0)))
 
 # Extract KM Results
-analysisData$EVENT_FLAG <- as.numeric(analysisData$EVENT_FLAG)
-head(analysisData)
-
-km_fit <- survfit(Surv(FOLLOW_UP_DAYS, EVENT_FLAG) ~ DEVICE_NAME,
-                  data = analysisData)
+km_fit <- analysisData %>%
+mutate(EVENT_FLAG = as.numeric(EVENT_FLAG)) %>%
+survfit(Surv(FOLLOW_UP_DAYS, EVENT_FLAG) ~ DEVICE_NAME, data = .)
 
 plot <- ggsurvplot(km_fit,
            data = analysisData,
@@ -104,7 +102,7 @@ plot <- ggsurvplot(km_fit,
            font.y = 12,
            font.tickslab = 10,
            font.legend = 10,
-           risk.table.fontsize = 3.5,
+           risk.table.fontsize = 3.5
   )
 
 # Save plot as PDF file
