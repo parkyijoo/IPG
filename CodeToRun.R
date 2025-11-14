@@ -14,7 +14,6 @@ outputFolder <- "~/result"
 tableName <- "YourInstitution_survival_table.csv"            # Modify tableName according to your institution
 tableName2 <- "YourInstitution_result_table.csv"             # Modify tableName according to your institution
 tableName3 <- "YourInstitution_yearly_patient_count.csv"     # Modify tableName according to your institution
-tableName4 <- "YourInstitution_km_summary.csv"               # Modify tableName according to your institution
 
 # Library Setting
 library(CohortMethod)
@@ -141,5 +140,4 @@ km_summary <- summary(km_fit, times = seq(0, 1825, by = 365))
 write.csv(tableResults, file.path(outputFolder, tableName))
 write.csv(analysisData, file.path(outputFolder, tableName2))
 write.csv(yearlyPatientCount, file.path(outputFolder, tableName3))
-write.csv(km_summary_table, file.path(outputFolder, tableName4))
-
+saveRDS(km_fit, file.path(outputFolder, "YourInstitution_km_fit.rds"))
