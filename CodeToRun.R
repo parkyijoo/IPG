@@ -93,7 +93,7 @@ tableResults <- ipgModels %>%
 
 yearlyPatientCount <- analysisData %>%
   mutate(IMPLANT_YEAR = format(as.Date(DEVICE_EXPOSURE_START_DATE), "%Y")) %>%
-  group_by(IMPLANT_YEAR) %>%
+  group_by(IMPLANT_YEAR, DEVICE_NAME) %>%
   summarise(
     n_patients = n_distinct(PERSON_ID),
     n_ipgs = n()
