@@ -10,9 +10,11 @@
 # =====================================================
 
 outputFolder <- "~/result"
-pdfName <- "YourInstitution_Kaplan_Meier_IPG.pdf" # Modify pdfName according to your institution
-tableName <- "YourInstitution_survival_table.csv" # Modify tableName according to your institution
-tableName2 <- "YourInstitution_result_table.csv" # Modify tableName according to your institution
+# pdfName <- "YourInstitution_Kaplan_Meier_IPG.pdf"          # Modify pdfName according to your institution
+tableName <- "YourInstitution_survival_table.csv"            # Modify tableName according to your institution
+tableName2 <- "YourInstitution_result_table.csv"             # Modify tableName according to your institution
+tableName3 <- "YourInstitution_yearly_patient_count.csv"     # Modify tableName according to your institution
+tableName4 <- "YourInstitution_km_summary.csv"               # Modify tableName according to your institution
 
 # Library Setting
 library(CohortMethod)
@@ -45,11 +47,19 @@ sql <- SqlRender::readSql("CreateCohorts.sql")
 rawData <- DatabaseConnector::renderTranslateQuerySql(connection, sql, databaseschema = schema)
 DatabaseConnector::disconnect(connection)
 
-analysisData <- rawData
+# =====================================================
+# New: Add Criteria & Device
+# =====================================================
+
+analysisData <- rawData %>%
+  filter(FOLLOW_UP_DAYS > 365) %>%
+  filter(as.Date(DEVICE_EXPOSURE_START_DATE) <= as.Date("2019-12-31"))
 
 ipgModels <- data.frame(
-  DEVICE_NAME = c("Activa PC", "Vercise PC", "Infinity")
+  DEVICE_NAME = c("Activa PC", "Vercise PC", "Infinity", "Activa SC", "Soletra")
 )
+
+# =====================================================
 
 tableResults <- ipgModels %>%
   left_join(
@@ -78,38 +88,58 @@ tableResults <- ipgModels %>%
   ) %>%
   mutate(across(where(is.numeric), ~replace_na(., 0)))
 
+# =====================================================
+# New: Yearly Patient Count Table
+# =====================================================
+
+yearlyPatientCount <- analysisData %>%
+  mutate(IMPLANT_YEAR = format(as.Date(DEVICE_EXPOSURE_START_DATE), "%Y")) %>%
+  group_by(IMPLANT_YEAR) %>%
+  summarise(
+    n_patients = n_distinct(PERSON_ID),
+    n_ipgs = n()
+  ) %>%
+  arrange(IMPLANT_YEAR)
+
+# =====================================================
+
 # Extract KM Results
 km_fit <- analysisData %>%
 mutate(EVENT_FLAG = as.numeric(EVENT_FLAG)) %>%
 survfit(Surv(FOLLOW_UP_DAYS, EVENT_FLAG) ~ DEVICE_NAME, data = .)
 
-plot <- ggsurvplot(km_fit,
-           data = analysisData,
-           pval = FALSE,                            # p-value
-           conf.int = FALSE,                        # CI
-           risk.table = TRUE,
-           palette = c("#E18727FF", "#0072B5FF"), 
-           xlab = "Follow-up Days",
-           ylab = "Survival probability",
-           title = "Kaplan-Meier Survival Curves by IPG type",
-           ggtheme = theme_minimal(),
-           legend.title = "",
-           legend.labs = c("Activa PC", "Infinity"),
-           break.time.by = 365,
-           xlim = c(0, 1825),
-           font.main = 14,
-           font.x = 12,
-           font.y = 12,
-           font.tickslab = 10,
-           font.legend = 10,
-           risk.table.fontsize = 3.5
-  )
+km_summary <- summary(km_fit, times = seq(0, 1825, by = 365))
 
-# Save plot as PDF file
-pdf(file.path(outputFolder, pdfName), width = 7.87, height = 5.91) 
-print(plot)
-dev.off()
+# plot <- ggsurvplot(km_fit,
+#            data = analysisData,
+#            pval = FALSE,                            # p-value
+#            conf.int = FALSE,                        # CI
+#            risk.table = TRUE,
+#            palette = c("#E18727FF", "#0072B5FF"), 
+#            xlab = "Follow-up Days",
+#            ylab = "Survival probability",
+#            title = "Kaplan-Meier Survival Curves by IPG type",
+#            ggtheme = theme_minimal(),
+#            legend.title = "",
+#            legend.labs = c("Activa PC", "Activa SC", "Infinity", "Soletra", "Vercise PC"),
+#            break.time.by = 365,
+#            xlim = c(0, 1825),
+#            font.main = 14,
+#            font.x = 12,
+#            font.y = 12,
+#            font.tickslab = 10,
+#            font.legend = 10,
+#            risk.table.fontsize = 3.5
+#   )
+# 
+# # Save plot as PDF file
+# pdf(file.path(outputFolder, pdfName), width = 7.87, height = 5.91) 
+# print(plot)
+# dev.off()
 
 # Export results table as CSV
 write.csv(tableResults, file.path(outputFolder, tableName))
 write.csv(analysisData, file.path(outputFolder, tableName2))
+write.csv(yearlyPatientCount, file.path(outputFolder, tableName3))
+write.csv(km_summary_table, file.path(outputFolder, tableName4))
+
